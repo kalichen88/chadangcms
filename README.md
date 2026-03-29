@@ -7,12 +7,12 @@ pnpm install
 pnpm run dev
 ```
 
-## Cloudflare Pages 部署
+## Cloudflare 部署
 
-- 本项目为纯前端 SPA（无 Windows 服务器依赖），生产环境产物为静态文件，适合部署到 Cloudflare Pages。
+- 本项目为纯前端 SPA（无 Windows 服务器依赖），生产环境产物为静态文件。
 - 登录/数据库/文件存储等后端能力由 Supabase 提供，前端通过环境变量读取 Supabase 配置。
 
-### 1) 连接 GitHub 自动部署
+### 1) Cloudflare Pages（静态托管）
 
 1. 将仓库推送到 GitHub。
 2. Cloudflare Dashboard → Pages → Create a project → 选择 GitHub 仓库。
@@ -23,9 +23,10 @@ pnpm run dev
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
 
-### 2) SPA 路由说明
+### 2) Cloudflare Workers（Assets + Wrangler）
 
-- 已添加 `public/_redirects`：`/* /index.html 200`，确保 `/admin/*`、`/detail/*` 等前端路由在 Cloudflare Pages 刷新不 404。
+- 如果你在 Cloudflare 创建的是 Worker 并用 `npx wrangler deploy` 部署：本仓库已提供 `wrangler.jsonc`，并配置了 `assets.not_found_handling = "single-page-application"`，刷新 `/admin/*`、`/detail/*` 等路由不会 404。
+- Workers 模式下不使用 `public/_redirects`，避免 Wrangler 校验报错。
 
 ---
 
