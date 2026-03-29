@@ -8,8 +8,11 @@
   "build": {
     "command": "pnpm run build"
   },
+  "main": "./src/worker.ts",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/__env"],
     "not_found_handling": "single-page-application"
   },
   "compatibility_flags": ["nodejs_compat"]
