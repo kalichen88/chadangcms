@@ -82,7 +82,12 @@ export default function RichBlockEditor({
       });
       updateBlock(blockId, (prev) => (prev.type === kind ? { ...prev, url: publicUrl } : prev));
     } catch (e) {
-      setBlockError(blockId, e instanceof Error ? e.message : "上传失败");
+      const msg = e instanceof Error ? e.message : "上传失败";
+      const hint =
+        msg === "Failed to fetch"
+          ? "网络/CORS/权限导致请求被浏览器拦截。请先确认已登录后台、`/__env` 返回的 Supabase 配置非空，并检查 Supabase Storage bucket `public-media` 已存在且允许 authenticated 写入。"
+          : "";
+      setBlockError(blockId, hint ? `${msg}（${hint}）` : msg);
     } finally {
       setBlockUploading(blockId, false);
     }
