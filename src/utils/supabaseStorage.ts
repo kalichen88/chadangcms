@@ -44,10 +44,10 @@ export async function uploadToPublicBucket({
   const { url, anon } = getBase();
   const path = buildPath(folder, file.name);
   const encoded = encodePath(path);
-  const endpoint = `${url}/storage/v1/object/${encodeURIComponent(bucket)}/${encoded}?upsert=true`;
+  const endpoint = `${url}/storage/v1/object/${encodeURIComponent(bucket)}/${encoded}`;
 
   const res = await fetch(endpoint, {
-    method: "PUT",
+    method: "POST",
     headers: {
       apikey: anon,
       Authorization: `Bearer ${accessToken}`,
