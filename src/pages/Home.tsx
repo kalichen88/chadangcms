@@ -111,7 +111,7 @@ export default function Home() {
             <div className="font-semibold">数据加载失败</div>
             <div className="mt-1">{error}</div>
             <div className="mt-2 text-xs text-amber-800">
-              请在本地或 Cloudflare Pages 环境变量中配置 `VITE_SUPABASE_URL` 与 `VITE_SUPABASE_ANON_KEY`。
+              请在本地或 Cloudflare（Workers/Pages）环境变量中配置 `VITE_SUPABASE_URL` 与 `VITE_SUPABASE_ANON_KEY`。
             </div>
           </section>
         ) : null}

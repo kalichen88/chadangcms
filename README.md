@@ -30,6 +30,26 @@ pnpm run dev
 
 ---
 
+## 富内容图片/视频上传（Supabase Storage）
+
+本项目支持在 CMS 富内容编辑器中：选择图片/视频文件 → 自动上传到 Supabase Storage → 自动回填公开 URL。
+
+### 1) 一次性初始化（已提供迁移）
+
+- 已新增迁移文件：`supabase/migrations/002_storage_public_media.sql`
+- 该迁移会创建/更新公开 bucket：`public-media`，并为 `anon` 开放读取、为 `authenticated` 开放增删改。
+
+### 2) 手动方式（如果你不想用迁移）
+
+在 Supabase 控制台：
+
+1. Storage → 创建 bucket：`public-media`，勾选 Public
+2. Storage Policies（或 SQL Editor）为 `storage.objects` 添加策略：
+   - `anon` 可 `SELECT`（仅 `bucket_id = 'public-media'`）
+   - `authenticated` 可 `INSERT/UPDATE/DELETE`（仅 `bucket_id = 'public-media'`）
+
+---
+
 ## 模板说明
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

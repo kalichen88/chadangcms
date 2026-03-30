@@ -6,6 +6,8 @@ export function getRequiredEnv(name: string) {
   const runtimeValue = runtimeEnv?.[name]
   if (runtimeValue) return runtimeValue
 
-  throw new Error(`Missing env: ${name}`)
+  throw new Error(
+    `Missing env: ${name}. 请在本地 .env 或 Cloudflare（Workers/Pages）环境变量中配置。`
+  )
 }
 

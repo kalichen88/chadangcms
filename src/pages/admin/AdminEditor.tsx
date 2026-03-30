@@ -9,11 +9,13 @@ import {
   adminGetContentById,
   adminListCategories,
   adminUpdateContent,
+  restSelect,
   type Category,
   type ContentItem,
   type ContentWrite,
 } from "@/utils/supabaseRest";
 import { parseRichDoc, type RichDoc } from "@/utils/richContent";
+import { slugify } from "@/utils/slugify";
 
 export default function AdminEditor() {
   const { type, id } = useParams();
@@ -30,6 +32,7 @@ export default function AdminEditor() {
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [priceText, setPriceText] = useState("");
   const [code, setCode] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -55,6 +58,7 @@ export default function AdminEditor() {
         if (item) {
           setTitle(item.title);
           setSlug(item.slug);
+          setSlugTouched(true);
           setPriceText(item.price_text);
           setCode(item.code);
           setCategoryId(item.category_id);
@@ -67,6 +71,7 @@ export default function AdminEditor() {
           const first = cs[0];
           if (first) setCategoryId(first.id);
           setDoc({ blocks: [] });
+          setSlugTouched(false);
         }
         setError(null);
         setLoading(false);
@@ -80,6 +85,13 @@ export default function AdminEditor() {
       cancelled = true;
     };
   }, [id, isNew, token]);
+
+  useEffect(() => {
+    if (!isNew) return;
+    if (slugTouched) return;
+    if (!title.trim()) return;
+    setSlug(slugify(title));
+  }, [isNew, slugTouched, title]);
 
   const selectedCategory = useMemo(() => categories.find((c) => c.id === categoryId) || null, [categories, categoryId]);
 
@@ -95,6 +107,29 @@ export default function AdminEditor() {
 
   const canSave = useMemo(() => !!title && !!slug && !!categoryId && !!code, [categoryId, code, slug, title]);
 
+  const findAvailableSlug = async (candidate: string) => {
+    const base = candidate;
+    const exists = async (s: string) => {
+      const rows = await restSelect<{ id: string }[]>(
+        `content_items?select=id&slug=eq.${encodeURIComponent(s)}&limit=1`,
+        token
+      );
+      if (!rows[0]) return false;
+      if (!isNew && current && rows[0].id === current.id) return false;
+      return true;
+    };
+
+    if (!(await exists(base))) return base;
+    for (let i = 2; i <= 50; i++) {
+      const next = `${base}-${i}`;
+      if (!(await exists(next))) return next;
+    }
+    return `${base}-${Date.now()}`;
+  };
+
+  const isDuplicateSlugError = (message: string) =>
+    message.includes("content_items_slug_key") || message.includes("duplicate key value") || message.includes("23505");
+
   const onSave = async (publish: boolean) => {
     if (!token || !type) return;
     if (!canSave) {
@@ -103,10 +138,17 @@ export default function AdminEditor() {
     }
     setSaving(true);
     try {
+      const normalizedSlug = slugify(slug);
+      const ensuredSlug = await findAvailableSlug(normalizedSlug);
+      if (ensuredSlug !== slug) {
+        setSlug(ensuredSlug);
+        setSlugTouched(true);
+      }
+
       const payload: ContentWrite = {
         type,
         title,
-        slug,
+        slug: ensuredSlug,
         category_id: categoryId,
         code,
         price_text: priceText,
@@ -123,9 +165,20 @@ export default function AdminEditor() {
       };
 
       if (isNew) {
-        const created = await adminCreateContent(token, payload);
-        const row = created[0];
-        navigate(`/admin/editor/${type}/${row.id}`, { replace: true });
+        try {
+          const created = await adminCreateContent(token, payload);
+          const row = created[0];
+          navigate(`/admin/editor/${type}/${row.id}`, { replace: true });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "保存失败";
+          if (!isDuplicateSlugError(msg)) throw e;
+          const retrySlug = await findAvailableSlug(`${ensuredSlug}-2`);
+          setSlug(retrySlug);
+          setSlugTouched(true);
+          const created = await adminCreateContent(token, { ...payload, slug: retrySlug });
+          const row = created[0];
+          navigate(`/admin/editor/${type}/${row.id}`, { replace: true });
+        }
       } else if (current) {
         await adminUpdateContent(token, current.id, payload);
       }
@@ -194,7 +247,10 @@ export default function AdminEditor() {
                 <div className="text-xs font-semibold text-zinc-600">slug（用于URL）</div>
                 <input
                   value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
+                  onChange={(e) => {
+                    setSlug(e.target.value);
+                    setSlugTouched(true);
+                  }}
                   className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600/20 focus:ring-4"
                   placeholder="demo-project-1"
                 />
