@@ -27,7 +27,13 @@ export default {
       )
     }
 
-    return env.ASSETS.fetch(request)
+    const res = await env.ASSETS.fetch(request)
+    const ct = res.headers.get("content-type") || ""
+    if (!ct.includes("text/html")) return res
+
+    const headers = new Headers(res.headers)
+    headers.set("Cache-Control", "no-cache")
+    return new Response(res.body, { status: res.status, statusText: res.statusText, headers })
   },
 }
 
