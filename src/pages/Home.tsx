@@ -123,38 +123,19 @@ export default function Home() {
           </section>
         ) : null}
 
-        <section className="rounded-2xl border border-zinc-200 bg-white p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <div className="text-sm font-semibold text-zinc-900">公告栏</div>
-              <div className="mt-1 text-sm text-zinc-600">支持后台编辑，首页跑马灯展示。</div>
-            </div>
-            {announcements[0] ? (
-              <Link to={`/detail/${announcements[0].slug}`} className="text-sm font-medium text-blue-700 hover:underline">
-                查看最新
-              </Link>
-            ) : null}
-          </div>
-          <div className="mt-4">
-            {loading ? (
-              <div className="h-10 animate-pulse rounded-2xl bg-zinc-100" />
-            ) : (
-              <MarqueeNotice
-                enabled={!!settings?.notice_enabled}
-                text={settings?.notice_text || (announcements[0]?.title || "")}
-                speed={settings?.notice_speed ?? 60}
-              />
-            )}
-          </div>
+        <section className="rounded-2xl border border-zinc-200 bg-white p-4">
+          {loading ? (
+            <div className="h-10 animate-pulse rounded-2xl bg-zinc-100" />
+          ) : (
+            <MarqueeNotice
+              enabled={!!settings?.notice_enabled}
+              text={settings?.notice_text || (announcements[0]?.title || "")}
+              speed={settings?.notice_speed ?? 60}
+            />
+          )}
         </section>
 
         <section className="mt-8">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-zinc-900">精选栏目</h2>
-              <div className="mt-1 text-sm text-zinc-600">栏目可在后台新增/排序/上下线。</div>
-            </div>
-          </div>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             {(homeCategories.length ? homeCategories : categories).slice(0, 6).map((c) => (
               <Link
@@ -164,9 +145,8 @@ export default function Home() {
               >
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-zinc-900 group-hover:text-blue-700">{c.name}</div>
-                  <div className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">进入</div>
                 </div>
-                <div className="mt-2 text-sm text-zinc-600">查看该栏目下的项目列表、价格与详情。</div>
+                <div className="mt-2 text-sm text-zinc-600">查看项目列表与详情</div>
               </Link>
             ))}
           </div>
@@ -174,7 +154,6 @@ export default function Home() {
 
         <section id="contact" className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6">
           <h2 className="text-xl font-semibold text-zinc-900">联系我们</h2>
-          <div className="mt-2 text-sm text-zinc-600">联系方式可在后台统一配置，全站同步展示。</div>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl bg-zinc-50 p-4">
               <div className="text-sm font-semibold text-zinc-900">电话</div>
