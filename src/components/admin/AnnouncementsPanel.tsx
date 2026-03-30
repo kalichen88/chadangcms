@@ -8,6 +8,7 @@ export default function AnnouncementsPanel({
   title,
   slug,
   doc,
+  accessToken,
   onChangeTitle,
   onChangeSlug,
   onChangeDoc,
@@ -19,6 +20,7 @@ export default function AnnouncementsPanel({
   title: string
   slug: string
   doc: RichDoc
+  accessToken: string
   onChangeTitle: (v: string) => void
   onChangeSlug: (v: string) => void
   onChangeDoc: (v: RichDoc) => void
@@ -44,7 +46,13 @@ export default function AnnouncementsPanel({
           />
         </div>
         <div className="mt-4">
-          <RichBlockEditor value={doc} onChange={onChangeDoc} />
+          <RichBlockEditor
+            value={doc}
+            onChange={onChangeDoc}
+            accessToken={accessToken}
+            storageBucket="public-media"
+            storageFolder={`cms/announcement/${slug || "draft"}`}
+          />
         </div>
         <button
           type="button"

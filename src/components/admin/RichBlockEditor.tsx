@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { RichBlock, RichDoc } from "@/utils/richContent";
+import { uploadToPublicBucket } from "@/utils/supabaseStorage";
 
 function newId() {
   if (globalThis.crypto && "randomUUID" in globalThis.crypto) return globalThis.crypto.randomUUID();
@@ -16,11 +17,20 @@ function move<T>(arr: T[], from: number, to: number) {
 export default function RichBlockEditor({
   value,
   onChange,
+  accessToken,
+  storageBucket,
+  storageFolder,
 }: {
   value: RichDoc;
   onChange: (next: RichDoc) => void;
+  accessToken?: string;
+  storageBucket: string;
+  storageFolder: string;
 }) {
   const blocks = useMemo(() => value.blocks || [], [value.blocks]);
+  const inputByBlock = useRef<Record<string, HTMLInputElement | null>>({});
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploadError, setUploadError] = useState<Record<string, string | undefined>>({});
 
   const updateBlock = (id: string, updater: (prev: RichBlock) => RichBlock) => {
     const next = blocks.map((b) => (b.id === id ? updater(b) : b));
@@ -34,6 +44,49 @@ export default function RichBlockEditor({
   const addText = () => onChange({ blocks: [...blocks, { id: newId(), type: "text", text: "" }] });
   const addImage = () => onChange({ blocks: [...blocks, { id: newId(), type: "image", url: "" }] });
   const addVideo = () => onChange({ blocks: [...blocks, { id: newId(), type: "video", url: "" }] });
+
+  const setBlockUploading = (id: string, v: boolean) =>
+    setUploading((prev) => ({ ...prev, [id]: v }));
+  const setBlockError = (id: string, msg: string | undefined) =>
+    setUploadError((prev) => ({ ...prev, [id]: msg }));
+
+  const onPickFile = (blockId: string) => {
+    const el = inputByBlock.current[blockId];
+    if (!el) return;
+    el.value = "";
+    el.click();
+  };
+
+  const onUploadFile = async (blockId: string, kind: "image" | "video", file: File) => {
+    if (!accessToken) {
+      setBlockError(blockId, "未登录，无法上传")
+      return;
+    }
+    if (kind === "image" && !file.type.startsWith("image/")) {
+      setBlockError(blockId, "请选择图片文件")
+      return;
+    }
+    if (kind === "video" && !file.type.startsWith("video/")) {
+      setBlockError(blockId, "请选择视频文件")
+      return;
+    }
+
+    setBlockError(blockId, undefined);
+    setBlockUploading(blockId, true);
+    try {
+      const { publicUrl } = await uploadToPublicBucket({
+        accessToken,
+        bucket: storageBucket,
+        folder: storageFolder,
+        file,
+      });
+      updateBlock(blockId, (prev) => (prev.type === kind ? { ...prev, url: publicUrl } : prev));
+    } catch (e) {
+      setBlockError(blockId, e instanceof Error ? e.message : "上传失败");
+    } finally {
+      setBlockUploading(blockId, false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -116,6 +169,30 @@ export default function RichBlockEditor({
 
             {b.type === "image" ? (
               <div className="mt-3 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onPickFile(b.id)}
+                    disabled={!accessToken || !!uploading[b.id]}
+                    className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:opacity-50"
+                  >
+                    {uploading[b.id] ? "上传中…" : "选择图片上传"}
+                  </button>
+                  <input
+                    ref={(el) => {
+                      inputByBlock.current[b.id] = el;
+                    }}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      void onUploadFile(b.id, "image", f);
+                    }}
+                  />
+                  <div className="text-xs text-zinc-500">将原图上传到 Storage，并自动回填公开URL</div>
+                </div>
                 <input
                   value={b.url}
                   onChange={(e) =>
@@ -124,14 +201,43 @@ export default function RichBlockEditor({
                     )
                   }
                   className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600/20 focus:ring-4"
-                  placeholder="图片URL（后续可接入上传到 Supabase Storage）"
+                  placeholder="图片URL（可粘贴外链，也可用上方按钮上传）"
                 />
+                {uploadError[b.id] ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    {uploadError[b.id]}
+                  </div>
+                ) : null}
                 {b.url ? <img src={b.url} alt="" className="h-auto w-full rounded-xl border border-zinc-200" /> : null}
               </div>
             ) : null}
 
             {b.type === "video" ? (
               <div className="mt-3 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onPickFile(b.id)}
+                    disabled={!accessToken || !!uploading[b.id]}
+                    className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:opacity-50"
+                  >
+                    {uploading[b.id] ? "上传中…" : "选择视频上传"}
+                  </button>
+                  <input
+                    ref={(el) => {
+                      inputByBlock.current[b.id] = el;
+                    }}
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      void onUploadFile(b.id, "video", f);
+                    }}
+                  />
+                  <div className="text-xs text-zinc-500">将原视频上传到 Storage，并自动回填公开URL</div>
+                </div>
                 <input
                   value={b.url}
                   onChange={(e) =>
@@ -140,8 +246,20 @@ export default function RichBlockEditor({
                     )
                   }
                   className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600/20 focus:ring-4"
-                  placeholder="视频URL（YouTube embed 或 mp4 链接）"
+                  placeholder="视频URL（可粘贴 mp4 链接，也可用上方按钮上传）"
                 />
+                {uploadError[b.id] ? (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    {uploadError[b.id]}
+                  </div>
+                ) : null}
+                {b.url ? (
+                  <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+                    <div className="aspect-video w-full">
+                      <video className="h-full w-full" src={b.url} controls />
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>

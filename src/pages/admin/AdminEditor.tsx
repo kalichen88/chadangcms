@@ -167,7 +167,13 @@ export default function AdminEditor() {
             {loading ? (
               <div className="h-[520px] animate-pulse rounded-xl bg-zinc-100" />
             ) : (
-              <RichBlockEditor value={doc} onChange={setDoc} />
+              <RichBlockEditor
+                value={doc}
+                onChange={setDoc}
+                accessToken={token}
+                storageBucket="public-media"
+                storageFolder={`cms/${type || "content"}/${slug || code || "draft"}`}
+              />
             )}
           </div>
         </section>

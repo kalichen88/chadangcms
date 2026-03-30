@@ -186,6 +186,7 @@ export default function AdminSettings() {
           title={newAnnouncementTitle}
           slug={newAnnouncementSlug}
           doc={newAnnouncementDoc}
+          accessToken={token}
           onChangeTitle={setNewAnnouncementTitle}
           onChangeSlug={setNewAnnouncementSlug}
           onChangeDoc={setNewAnnouncementDoc}
