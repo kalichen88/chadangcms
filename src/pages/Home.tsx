@@ -3,6 +3,7 @@ import Container from "@/components/layout/Container";
 import SiteShell from "@/components/layout/SiteShell";
 import { useEffect, useMemo, useState } from "react";
 import { getPublicHomeData, type CarouselItem, type Category, type Announcement, type SiteSettings } from "@/utils/supabaseRest";
+import MarqueeNotice from "@/components/MarqueeNotice";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -53,7 +54,13 @@ export default function Home() {
       <div className="border-b border-zinc-200 bg-white">
         <div className="relative h-[360px] overflow-hidden md:h-[440px]">
           {active?.image_url ? (
-            <img src={active.image_url} alt={active.title} className="absolute inset-0 h-full w-full object-cover" />
+            active.link_url ? (
+              <Link to={active.link_url} aria-label={active.title || "轮播"} className="absolute inset-0">
+                <img src={active.image_url} alt={active.title} className="h-full w-full object-cover" />
+              </Link>
+            ) : (
+              <img src={active.image_url} alt={active.title} className="absolute inset-0 h-full w-full object-cover" />
+            )
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-sky-500 to-zinc-900" />
           )}
@@ -128,20 +135,16 @@ export default function Home() {
               </Link>
             ) : null}
           </div>
-          <div className="mt-4 overflow-hidden rounded-xl bg-zinc-50">
-            <div className="whitespace-nowrap px-4 py-3 text-sm text-zinc-700">
-              {loading ? (
-                <span className="mr-10">加载中…</span>
-              ) : announcements.length ? (
-                announcements.slice(0, 5).map((a) => (
-                  <Link key={a.id} to={`/detail/${a.slug}`} className="mr-10 hover:underline">
-                    {a.title}
-                  </Link>
-                ))
-              ) : (
-                <span className="mr-10">暂无公告</span>
-              )}
-            </div>
+          <div className="mt-4">
+            {loading ? (
+              <div className="h-10 animate-pulse rounded-2xl bg-zinc-100" />
+            ) : (
+              <MarqueeNotice
+                enabled={!!settings?.notice_enabled}
+                text={settings?.notice_text || (announcements[0]?.title || "")}
+                speed={settings?.notice_speed ?? 60}
+              />
+            )}
           </div>
         </section>
 

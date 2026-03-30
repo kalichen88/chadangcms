@@ -55,6 +55,48 @@ export default function SettingsPanel({
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-4">
+        <div className="text-sm font-semibold text-zinc-900">公告栏（跑马灯）</div>
+        <div className="mt-4 space-y-3">
+          <label className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-3 py-2">
+            <div className="text-sm font-semibold text-zinc-800">启用</div>
+            <input
+              type="checkbox"
+              checked={!!settings?.notice_enabled}
+              onChange={(e) => settings && onChange({ ...settings, notice_enabled: e.target.checked })}
+              disabled={!settings || loading}
+            />
+          </label>
+          <textarea
+            value={settings?.notice_text || ""}
+            onChange={(e) => settings && onChange({ ...settings, notice_text: e.target.value })}
+            className="h-28 w-full resize-none rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600/20 focus:ring-4"
+            placeholder="输入公告滚动文字（建议一条长句）"
+            disabled={!settings || loading}
+          />
+          <label className="block">
+            <div className="text-xs font-semibold text-zinc-600">滚动速度（数值越大越快）</div>
+            <input
+              type="number"
+              value={String(settings?.notice_speed ?? 60)}
+              onChange={(e) => settings && onChange({ ...settings, notice_speed: Number(e.target.value) || 60 })}
+              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600/20 focus:ring-4"
+              disabled={!settings || loading}
+              min={10}
+              max={200}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!settings || loading}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+          >
+            保存公告设置
+          </button>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-zinc-200 bg-white p-4">
         <div className="text-sm font-semibold text-zinc-900">客服入口</div>
         <div className="mt-4 space-y-3">
           <input

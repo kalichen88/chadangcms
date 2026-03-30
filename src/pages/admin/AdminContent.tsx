@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import {
   adminCreateCategory,
+  adminDeleteContent,
   adminListAllContent,
   adminListCategories,
   adminUpdateCategory,
@@ -68,6 +69,18 @@ export default function AdminContent() {
     await adminUpdateCategory(token, c.id, { is_published: !c.is_published });
     await reload();
   };
+
+  const onDelete = async (it: ContentItem) => {
+    if (!token) return
+    const ok = window.confirm(`确认删除：${it.title}（${it.code}）？删除后不可恢复。`)
+    if (!ok) return
+    try {
+      await adminDeleteContent(token, it.id)
+      await reload()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "删除失败")
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -180,15 +193,17 @@ export default function AdminContent() {
             <div className="col-span-2">ID</div>
             <div className="col-span-2">类型</div>
             <div className="col-span-2">状态</div>
-            <div className="col-span-2">更新时间</div>
+            <div className="col-span-1">更新时间</div>
+            <div className="col-span-1 text-right">操作</div>
           </div>
           {items.map((it) => (
-            <Link
-              key={it.id}
-              to={`/admin/editor/${it.type}/${it.id}`}
-              className="grid grid-cols-12 px-4 py-3 text-sm transition hover:bg-zinc-50"
-            >
-              <div className="col-span-4 font-medium text-zinc-900">{it.title}</div>
+            <div key={it.id} className="grid grid-cols-12 items-center px-4 py-3 text-sm transition hover:bg-zinc-50">
+              <Link
+                to={`/admin/editor/${it.type}/${it.id}`}
+                className="col-span-4 font-medium text-zinc-900 hover:underline"
+              >
+                {it.title}
+              </Link>
               <div className="col-span-2 text-zinc-600">{it.code}</div>
               <div className="col-span-2 text-zinc-600">{it.type}</div>
               <div className="col-span-2">
@@ -202,8 +217,19 @@ export default function AdminContent() {
                   {it.is_published ? "已发布" : "草稿"}
                 </span>
               </div>
-              <div className="col-span-2 text-zinc-600">{new Date(it.updated_at).toLocaleString()}</div>
-            </Link>
+              <div className="col-span-1 truncate text-zinc-600" title={new Date(it.updated_at).toLocaleString()}>
+                {new Date(it.updated_at).toLocaleDateString()}
+              </div>
+              <div className="col-span-1 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => void onDelete(it)}
+                  className="rounded-lg border border-red-200 bg-white px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                >
+                  删除
+                </button>
+              </div>
+            </div>
           ))}
           {!items.length && !loading ? <div className="px-4 py-4 text-sm text-zinc-600">暂无内容</div> : null}
         </section>

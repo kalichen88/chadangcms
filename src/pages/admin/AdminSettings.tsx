@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/authStore";
 import {
   adminCreateAnnouncement,
   adminCreateCarousel,
+  adminDeleteCarousel,
   adminGetSettings,
   adminListAnnouncements,
   adminListCarousel,
@@ -94,6 +95,14 @@ export default function AdminSettings() {
     await reload();
   };
 
+  const deleteCarouselRow = async (row: CarouselItem) => {
+    if (!token) return
+    const ok = window.confirm(`确认删除轮播：${row.title || row.id}？删除后不可恢复。`)
+    if (!ok) return
+    await adminDeleteCarousel(token, row.id)
+    await reload()
+  }
+
   const createAnnouncement = async () => {
     if (!token) return;
     if (!newAnnouncementTitle || !newAnnouncementSlug) {
@@ -173,9 +182,11 @@ export default function AdminSettings() {
           loading={loading}
           carousel={carousel}
           newCarousel={newCarousel}
+          accessToken={token}
           onChangeNew={setNewCarousel}
           onCreate={() => void createCarousel()}
           onUpdate={(row, patch) => void updateCarouselRow(row, patch)}
+          onDelete={(row) => void deleteCarouselRow(row)}
         />
       ) : null}
 

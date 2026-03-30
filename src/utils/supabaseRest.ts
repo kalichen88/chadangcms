@@ -70,6 +70,9 @@ export type SiteSettings = {
   work_time: string;
   cs_button_text: string;
   cs_popup_json: unknown;
+  notice_enabled: boolean;
+  notice_text: string;
+  notice_speed: number;
 };
 
 function getBase() {
@@ -161,7 +164,7 @@ export async function restSelect<T>(path: string, accessToken?: string) {
 export async function restWrite<T>(
   method: "POST" | "PATCH" | "DELETE",
   path: string,
-  body: unknown,
+  body: unknown | undefined,
   accessToken: string
 ) {
   const { url, anon } = getBase()
@@ -174,8 +177,16 @@ export async function restWrite<T>(
       "Content-Type": "application/json",
       Prefer: "return=representation",
     },
-    body,
+    body: method === "DELETE" ? undefined : body,
   })
+}
+
+export async function adminDeleteContent(accessToken: string, id: string) {
+  await restWrite<unknown>("DELETE", `content_items?id=eq.${encodeURIComponent(id)}`, undefined, accessToken)
+}
+
+export async function adminDeleteCarousel(accessToken: string, id: string) {
+  await restWrite<unknown>("DELETE", `carousel_items?id=eq.${encodeURIComponent(id)}`, undefined, accessToken)
 }
 
 export async function getPublicHomeData() {
@@ -326,6 +337,9 @@ export async function adminSaveSettings(accessToken: string, settings: SiteSetti
     work_time: settings.work_time,
     cs_button_text: settings.cs_button_text,
     cs_popup_json: settings.cs_popup_json || {},
+    notice_enabled: settings.notice_enabled,
+    notice_text: settings.notice_text,
+    notice_speed: settings.notice_speed,
     updated_at: new Date().toISOString(),
   }
 
