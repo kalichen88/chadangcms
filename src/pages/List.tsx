@@ -37,9 +37,7 @@ export default function List() {
     <SiteShell>
       <Container className="py-10">
         <div className="mb-6">
-          <div className="text-sm text-zinc-500">首页 / 栏目</div>
           <h1 className="mt-2 text-2xl font-semibold text-zinc-900">{category?.name || `栏目：${categorySlug}`}</h1>
-          <div className="mt-2 text-sm text-zinc-600">展示该栏目下已发布的项目/文章。</div>
         </div>
 
         {error ? (
@@ -48,15 +46,7 @@ export default function List() {
           </div>
         ) : null}
 
-        <div className="grid gap-4 md:grid-cols-[280px_1fr]">
-          <aside className="rounded-2xl border border-zinc-200 bg-white p-4">
-            <div className="text-sm font-semibold text-zinc-900">筛选</div>
-            <div className="mt-3 space-y-2 text-sm text-zinc-600">
-              <div className="rounded-xl bg-zinc-50 px-3 py-2">标签（多选）</div>
-              <div className="rounded-xl bg-zinc-50 px-3 py-2">关键字</div>
-            </div>
-          </aside>
-
+        <div>
           <section className="grid gap-4 md:grid-cols-2">
             {loading ? (
               Array.from({ length: 6 }).map((_, idx) => (
@@ -80,12 +70,12 @@ export default function List() {
                   <div className="mt-4 flex items-start justify-between gap-3">
                     <div>
                       <div className="text-sm font-semibold text-zinc-900 group-hover:text-blue-700">{it.title}</div>
-                      <div className="mt-1 text-sm text-zinc-600">价格：{it.price_text || "待配置"}</div>
+                      <div className="mt-1 text-sm text-zinc-600">价格：{it.price_text || "面议"}</div>
                       <div className="mt-1 text-xs text-zinc-500">ID：{it.code}</div>
                     </div>
                     <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">查看详情</div>
                   </div>
-                  <div className="mt-2 text-sm text-zinc-600">{it.summary || "-"}</div>
+                  {it.summary ? <div className="mt-2 text-sm text-zinc-600">{it.summary}</div> : null}
                 </Link>
               ))
             ) : (

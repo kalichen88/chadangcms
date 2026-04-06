@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Container from "@/components/layout/Container";
 import SiteShell from "@/components/layout/SiteShell";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { getPublicHomeData, type CarouselItem, type Category, type Announcement, type SiteSettings } from "@/utils/supabaseRest";
 import MarqueeNotice from "@/components/MarqueeNotice";
 
@@ -39,15 +39,36 @@ export default function Home() {
 
   const active = carousel.length ? carousel[Math.min(carouselIndex, carousel.length - 1)] : null;
 
+  const carouselIntervalMs = useMemo(() => {
+    const raw = settings?.carousel_interval_ms ?? 4500;
+    const clamped = Math.min(20000, Math.max(1500, raw));
+    return clamped;
+  }, [settings?.carousel_interval_ms]);
+
   useEffect(() => {
     if (!carousel.length) return;
     const t = window.setInterval(() => {
       setCarouselIndex((i) => (i + 1) % carousel.length);
-    }, 4500);
+    }, carouselIntervalMs);
     return () => window.clearInterval(t);
-  }, [carousel.length]);
+  }, [carousel.length, carouselIntervalMs]);
 
   const homeCategories = useMemo(() => categories.filter((c) => c.show_on_home), [categories]);
+
+  const renderCarouselLink = (href: string, children: ReactNode) => {
+    if (/^https?:\/\//i.test(href)) {
+      return (
+        <a href={href} target="_blank" rel="noreferrer" className="absolute inset-0" aria-label={active?.title || "轮播"}>
+          {children}
+        </a>
+      );
+    }
+    return (
+      <Link to={href} aria-label={active?.title || "轮播"} className="absolute inset-0">
+        {children}
+      </Link>
+    );
+  };
 
   return (
     <SiteShell>
@@ -55,9 +76,10 @@ export default function Home() {
         <div className="relative h-[360px] overflow-hidden md:h-[440px]">
           {active?.image_url ? (
             active.link_url ? (
-              <Link to={active.link_url} aria-label={active.title || "轮播"} className="absolute inset-0">
+              renderCarouselLink(
+                active.link_url,
                 <img src={active.image_url} alt={active.title} className="h-full w-full object-cover" />
-              </Link>
+              )
             ) : (
               <img src={active.image_url} alt={active.title} className="absolute inset-0 h-full w-full object-cover" />
             )
@@ -65,33 +87,17 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-sky-500 to-zinc-900" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-zinc-950/20 to-zinc-950/10" />
-          <Container className="relative flex h-full items-end pb-10">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/20">
-                {settings?.company_name ? `${settings.company_name}｜官网` : "可配置轮播 + 公告 + 富内容CMS"}
-              </div>
-              <h1 className="mt-4 text-3xl font-semibold text-white md:text-4xl">
-                {active?.title || "让业务介绍与报价更清晰"}
-              </h1>
-              <p className="mt-3 text-base text-white/85 md:text-lg">
-                支持栏目/项目管理、图文/视频详情编辑发布，右下角悬浮咨询入口帮助提升转化。
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link
-                  to={active?.link_url || "/list/services"}
-                  className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100"
-                >
-                  立即查看
-                </Link>
-                <Link
-                  to="/list/cases"
-                  className="rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/15"
-                >
-                  浏览案例
-                </Link>
-              </div>
+          <Container className="relative flex h-full items-end pb-8">
+            <div className="w-full">
+              {active?.title ? (
+                <div className="max-w-3xl">
+                  <div className="inline-flex rounded-2xl bg-black/25 px-4 py-3 text-2xl font-semibold text-white backdrop-blur md:text-3xl">
+                    {active.title}
+                  </div>
+                </div>
+              ) : null}
               {carousel.length > 1 ? (
-                <div className="mt-5 flex items-center gap-2">
+                <div className="mt-4 flex items-center gap-2">
                   {carousel.map((_, i) => (
                     <button
                       key={i}
@@ -112,7 +118,22 @@ export default function Home() {
         </div>
       </div>
 
-      <Container className="py-10">
+      <div className="border-b border-zinc-200 bg-white">
+        <Container className="py-2">
+          {loading ? (
+            <div className="h-8 animate-pulse rounded-2xl bg-zinc-100" />
+          ) : (
+            <MarqueeNotice
+              variant="bar"
+              enabled={!!settings?.notice_enabled}
+              text={settings?.notice_text || (announcements[0]?.title || "")}
+              speed={settings?.notice_speed ?? 60}
+            />
+          )}
+        </Container>
+      </div>
+
+      <Container className="py-8">
         {error ? (
           <section className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
             <div className="font-semibold">数据加载失败</div>
@@ -123,19 +144,7 @@ export default function Home() {
           </section>
         ) : null}
 
-        <section className="rounded-2xl border border-zinc-200 bg-white p-4">
-          {loading ? (
-            <div className="h-10 animate-pulse rounded-2xl bg-zinc-100" />
-          ) : (
-            <MarqueeNotice
-              enabled={!!settings?.notice_enabled}
-              text={settings?.notice_text || (announcements[0]?.title || "")}
-              speed={settings?.notice_speed ?? 60}
-            />
-          )}
-        </section>
-
-        <section className="mt-8">
+        <section className="mt-5">
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             {(homeCategories.length ? homeCategories : categories).slice(0, 6).map((c) => (
               <Link
@@ -149,24 +158,6 @@ export default function Home() {
                 <div className="mt-2 text-sm text-zinc-600">查看项目列表与详情</div>
               </Link>
             ))}
-          </div>
-        </section>
-
-        <section id="contact" className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6">
-          <h2 className="text-xl font-semibold text-zinc-900">联系我们</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl bg-zinc-50 p-4">
-              <div className="text-sm font-semibold text-zinc-900">电话</div>
-              <div className="mt-2 text-sm text-zinc-600">{settings?.phone || "待配置"}</div>
-            </div>
-            <div className="rounded-2xl bg-zinc-50 p-4">
-              <div className="text-sm font-semibold text-zinc-900">邮箱</div>
-              <div className="mt-2 text-sm text-zinc-600">{settings?.email || "待配置"}</div>
-            </div>
-            <div className="rounded-2xl bg-zinc-50 p-4">
-              <div className="text-sm font-semibold text-zinc-900">地址</div>
-              <div className="mt-2 text-sm text-zinc-600">{settings?.address || "待配置"}</div>
-            </div>
           </div>
         </section>
       </Container>

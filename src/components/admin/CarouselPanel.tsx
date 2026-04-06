@@ -69,7 +69,7 @@ export default function CarouselPanel({
             value={newCarousel.title}
             onChange={(e) => onChangeNew({ ...newCarousel, title: e.target.value })}
             className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600/20 focus:ring-4"
-            placeholder="标题"
+            placeholder="海报文字（可选）"
           />
           <input
             value={newCarousel.image_url}
@@ -135,6 +135,7 @@ export default function CarouselPanel({
                   defaultValue={c.title}
                   onBlur={(e) => onUpdate(c, { title: e.target.value })}
                   className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none"
+                  placeholder="海报文字（可选）"
                 />
                 <input
                   defaultValue={c.image_url}

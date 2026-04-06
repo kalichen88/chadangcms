@@ -97,6 +97,35 @@ export default function SettingsPanel({
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-4">
+        <div className="text-sm font-semibold text-zinc-900">轮播设置</div>
+        <div className="mt-4 space-y-3">
+          <label className="block">
+            <div className="text-xs font-semibold text-zinc-600">轮播间隔（毫秒）</div>
+            <input
+              type="number"
+              value={String(settings?.carousel_interval_ms ?? 4500)}
+              onChange={(e) =>
+                settings && onChange({ ...settings, carousel_interval_ms: Number(e.target.value) || 4500 })
+              }
+              className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-blue-600/20 focus:ring-4"
+              disabled={!settings || loading}
+              min={1500}
+              max={20000}
+              step={500}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!settings || loading}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+          >
+            保存轮播设置
+          </button>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-zinc-200 bg-white p-4">
         <div className="text-sm font-semibold text-zinc-900">客服入口</div>
         <div className="mt-4 space-y-3">
           <input

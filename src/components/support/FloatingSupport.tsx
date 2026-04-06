@@ -31,17 +31,17 @@ export default function FloatingSupport() {
     () => {
       const configured = parseSupportItems(settings?.cs_popup_json);
       if (configured.length) return configured;
-      return [
-        { label: "电话", value: settings?.phone || "待配置" },
-        { label: "邮箱", value: settings?.email || "待配置" },
-      ];
+      const out: SupportItem[] = [];
+      if (settings?.phone) out.push({ label: "电话", value: settings.phone });
+      if (settings?.email) out.push({ label: "邮箱", value: settings.email });
+      return out;
     },
     [settings?.cs_popup_json, settings?.email, settings?.phone]
   );
 
   return (
     <div className="fixed bottom-5 right-5 z-50">
-        <button
+      <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
@@ -73,7 +73,6 @@ export default function FloatingSupport() {
               </div>
               <div>
                 <div className="text-sm font-semibold text-zinc-900">联系咨询</div>
-                <div className="text-xs text-zinc-500">在线获取报价与方案</div>
               </div>
             </div>
             <button
@@ -92,7 +91,7 @@ export default function FloatingSupport() {
                 <div className="text-sm font-medium text-zinc-900">{it.value}</div>
               </div>
             ))}
-            <div className="text-xs text-zinc-500">内容可在后台配置，后续可扩展一键复制/表单。</div>
+            {!items.length ? <div className="text-sm text-zinc-600">请在后台配置咨询信息</div> : null}
           </div>
         </div>
       </div>

@@ -4,10 +4,12 @@ export default function MarqueeNotice({
   enabled,
   text,
   speed,
+  variant = "card",
 }: {
   enabled: boolean;
   text: string;
   speed: number;
+  variant?: "card" | "bar";
 }) {
   const durationSeconds = useMemo(() => {
     const s = Number.isFinite(speed) ? speed : 60;
@@ -19,7 +21,7 @@ export default function MarqueeNotice({
   if (!text.trim()) return null;
 
   return (
-    <div className="marquee-shell" role="note" aria-label="公告">
+    <div className={variant === "bar" ? "marquee-shell-bar" : "marquee-shell"} role="note" aria-label="公告">
       <div className="marquee-track" style={{ animationDuration: `${durationSeconds}s` }}>
         <span className="marquee-text">{text}</span>
         <span className="marquee-gap" aria-hidden="true" />

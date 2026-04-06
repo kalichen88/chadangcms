@@ -73,6 +73,7 @@ export type SiteSettings = {
   notice_enabled: boolean;
   notice_text: string;
   notice_speed: number;
+  carousel_interval_ms: number;
 };
 
 function getBase() {
@@ -340,6 +341,7 @@ export async function adminSaveSettings(accessToken: string, settings: SiteSetti
     notice_enabled: settings.notice_enabled,
     notice_text: settings.notice_text,
     notice_speed: settings.notice_speed,
+    carousel_interval_ms: settings.carousel_interval_ms,
     updated_at: new Date().toISOString(),
   }
 

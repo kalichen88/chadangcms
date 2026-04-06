@@ -9,15 +9,14 @@ export default function SiteFooter() {
       <Container className="py-10">
         <div className="grid gap-6 md:grid-cols-3">
           <div>
-            <div className="text-sm font-semibold text-zinc-900">商务咨询公司</div>
-            <div className="mt-2 text-sm text-zinc-600">提供可落地的咨询与解决方案，支持定制化服务。</div>
+            <div className="text-sm font-semibold text-zinc-900">{settings?.company_name || "公司"}</div>
           </div>
           <div>
             <div className="text-sm font-semibold text-zinc-900">联系</div>
             <div className="mt-2 space-y-1 text-sm text-zinc-600">
-              <div>电话：{settings?.phone || "待配置"}</div>
-              <div>邮箱：{settings?.email || "待配置"}</div>
-              <div>地址：{settings?.address || "待配置"}</div>
+              {settings?.phone ? <div>电话：{settings.phone}</div> : null}
+              {settings?.email ? <div>邮箱：{settings.email}</div> : null}
+              {settings?.address ? <div>地址：{settings.address}</div> : null}
             </div>
           </div>
           <div>

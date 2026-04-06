@@ -1,0 +1,3 @@
+ALTER TABLE site_settings
+ADD COLUMN IF NOT EXISTS carousel_interval_ms INT NOT NULL DEFAULT 4500;
+

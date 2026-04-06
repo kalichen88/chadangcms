@@ -61,7 +61,7 @@ export default function Detail() {
             <ArrowLeft className="h-4 w-4" />
             返回
           </button>
-          <div className="text-sm text-zinc-500">标识：{contentSlug}</div>
+          <div />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -81,7 +81,7 @@ export default function Detail() {
                 <h1 className="text-2xl font-semibold text-zinc-900">{title}</h1>
                 {content ? (
                   <div className="mt-2 text-sm text-zinc-600">
-                    {price ? `价格：${price}` : "价格：待配置"}
+                    {price ? `价格：${price}` : "价格：面议"}
                     {code ? ` · 项目ID：${code}` : null}
                   </div>
                 ) : (
@@ -98,16 +98,10 @@ export default function Detail() {
             <div className="rounded-2xl border border-zinc-200 bg-white p-4">
               <div className="text-sm font-semibold text-zinc-900">联系方式</div>
               <div className="mt-2 space-y-1 text-sm text-zinc-600">
-                <div>电话：{settings?.phone || "待配置"}</div>
-                <div>邮箱：{settings?.email || "待配置"}</div>
-                <div>工作时间：{settings?.work_time || "待配置"}</div>
+                {settings?.phone ? <div>电话：{settings.phone}</div> : null}
+                {settings?.email ? <div>邮箱：{settings.email}</div> : null}
+                {settings?.work_time ? <div>工作时间：{settings.work_time}</div> : null}
               </div>
-              <div className="mt-4 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-800">右下角可直接点击在线咨询</div>
-            </div>
-
-            <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-              <div className="text-sm font-semibold text-zinc-900">目录（可选）</div>
-              <div className="mt-2 text-sm text-zinc-600">后续可基于富内容标题自动生成。</div>
             </div>
           </aside>
         </div>
